@@ -1,4 +1,4 @@
-	<?php
+<?php
 
 session_start();
 echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><title>База даних</title>";
@@ -39,7 +39,7 @@ mysql_query("SET character_set_results=utf8");
  * @version 1.0
  *         
  */
-$sql = "SELECT * FROM my_table WHERE `author_id`=" . $_SESSION['author'];
+$sql = "SELECT * FROM my_table";
 $result = mysql_query($sql) or die(mysql_error());
 $table = "<table border=1>";
 $table .= "<tr align='center'>";
@@ -100,11 +100,15 @@ if ($add) {
             "INSERT INTO my_table (`name`, `shorttext`, `fulltext`, `creation_date`, `edit_date`, `author_id`) VALUES ('$_POST[addname]','$_POST[addshort]','$_POST[addfull]','$_POST[addcreation]','$_POST[addedition]', '$author_id')") or
              die("Error inserting to db" . mysql_error());
     // reload window
-    // echo "<script type='text/javascript'>
-    // parent.window.location.reload(true);</script>";
+     echo "<script type='text/javascript'>
+     parent.window.location.reload(true);</script>";
 }
 $edit = $_POST['edit'];
 if ($edit) {
+    //check author
+    $sql="SELECT `author_id` FROM my_table WHERE `id`=".$edit." LIMIT 1";
+    $result = mysql_query($sql);
+    if  ($author_id == mysql_result($result, 0)){
     // create UPDATE query
     $sql = "UPDATE my_table SET `name`='" .
              $_POST[name][array_search($edit, $_POST['id'])] . "', `shorttext`='" .
@@ -117,19 +121,28 @@ if ($edit) {
              $edit;
     // execute UPDATE query
     mysql_query($sql) or die("Error updating DB" . mysql_error());
+    } else { 
+        die ("No rights to do that");
+    }
     // reload window
-    // echo "<script type='text/javascript'>
-    // parent.window.location.reload(true);</script>";
+     echo "<script type='text/javascript'>
+     parent.window.location.reload(true);</script>";
 }
 $delete = $_POST['del'];
 if ($delete) {
+    //check author
+    $sql="SELECT `author_id` FROM my_table WHERE `id`=".$delete." LIMIT 1";
+    $result = mysql_query($sql);
+    if  ($author_id == mysql_result($result, 0)){
     // create and execute DELETE query
     mysql_query("DELETE FROM my_table WHERE `id`=" . $delete) or
              die("Error deleting from DB" . mysql_error());
-    ;
+    } else {
+        die ("No rights to do that");
+    }
     // reload window
-    // echo "<script type='text/javascript'>
-    // parent.window.location.reload(true);</script>";
+     echo "<script type='text/javascript'>
+     parent.window.location.reload(true);</script>";
 }
 ?>
 
