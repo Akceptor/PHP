@@ -13,8 +13,8 @@ if (isset($_SESSION['author'])) {
 }
 ?>
 	
-	<?php include 'db.php'?>
-
+	<?php include 'db.php' ?>
+	<?php include 'antispam.php' ?>
 <!-- DB Connect -->
 <?php
 $connect = mysql_connect(HOST, USER, PASSWORD) or
@@ -43,13 +43,13 @@ $sql = "SELECT * FROM my_table";
 $result = mysql_query($sql) or die(mysql_error());
 $table = "<table border=1>";
 $table .= "<tr align='center'>";
-$table .= "<td> ID </td><td> NAME </td><td> SHORT </td><td> FULL </td><td> CREATE </td><td> EDIT </td><td colspan=2> BUTTONS </td></tr>";
+$table .= "<td></td><td> NAME </td><td> SHORT </td><td> FULL </td><td> CREATE </td><td> EDIT </td><td colspan=2> BUTTONS </td></tr>";
 while ($row = mysql_fetch_assoc($result)) {
     $table .= "<tr>"; // show records from db
-    $table .= "<td><input type = 'text' name='id[]' id='id' size = 3 value='" .
-             $row['id'] . "'></td>";
+    $table .= "<td><input type = 'text' name='id[]' id='id' size = 1 value='" .
+             $row['id'] . "' hidden></td>";
     $table .= "<td><input type = 'text' name='name[]' id='name' size = 10 value='" .
-             $row['name'] . "'></td>";
+             $row['name'] . "' ></td>";
     $table .= "<td><input type = 'text' name='short[]' id='short' size = 20 value='" .
              $row['shorttext'] . "'></td>";
     $table .= "<td><textarea name='full[]' id='full' rows = 3 cols = 50 >" .
@@ -66,9 +66,9 @@ while ($row = mysql_fetch_assoc($result)) {
 }
 $table .= "<tr>"; // add new record
 $table .= "<td><input type = 'text' name='addid' id='addid' size = 3 value='' hidden></td>";
-$table .= "<td><input type = 'text' name='addname' id='addname' size = 10 value=''></td>";
-$table .= "<td><input type = 'text' name='addshort' id='addshort' size = 20 value=''></td>";
-$table .= "<td><textarea name='addfull' id='addfull' rows = 3 cols = 50 ></textarea></td>";
+$table .= "<td><input type = 'text' name='addname' id='addname' size = 10 value='' placeholder='Як Вас звати?' ></td>";
+$table .= "<td><input type = 'text' name='addshort' id='addshort' size = 20 value='' placeholder='Коротка інфа' ></td>";
+$table .= "<td><textarea name='addfull' id='addfull' rows = 3 cols = 50 placeholder='Опишіть ситуацію повністю' ></textarea></td>";
 $table .= "<td><input type = 'date' name='addcreation' id='addcreation' size = 8 value='" .
          $date . "'></td>";
 $table .= "<td><input type = 'date' name='addedition' id='addedition' size = 8 value='" .
@@ -96,8 +96,11 @@ echo $table;
 
 $add = $_POST['add'];
 if ($add) {
+
+	$content = antispam($_POST[addfull]);
+
     mysql_query(
-            "INSERT INTO my_table (`name`, `shorttext`, `fulltext`, `creation_date`, `edit_date`, `author_id`) VALUES ('$_POST[addname]','$_POST[addshort]','$_POST[addfull]','$_POST[addcreation]','$_POST[addedition]', '$author_id')") or
+            "INSERT INTO my_table (`name`, `shorttext`, `fulltext`, `creation_date`, `edit_date`, `author_id`) VALUES ('$_POST[addname]','$_POST[addshort]','$content','$_POST[addcreation]','$_POST[addedition]', '$author_id')") or
              die("Error inserting to db" . mysql_error());
     // reload window
      echo "<script type='text/javascript'>
@@ -109,11 +112,14 @@ if ($edit) {
     $sql="SELECT `author_id` FROM my_table WHERE `id`=".$edit." LIMIT 1";
     $result = mysql_query($sql);
     if  ($author_id == mysql_result($result, 0)){
+
+	$content = antispam($_POST[full][array_search($edit, $_POST['id'])]);
+
     // create UPDATE query
     $sql = "UPDATE my_table SET `name`='" .
              $_POST[name][array_search($edit, $_POST['id'])] . "', `shorttext`='" .
              $_POST[short][array_search($edit, $_POST['id'])] . "', `fulltext`='" .
-             $_POST[full][array_search($edit, $_POST['id'])] .
+             $content.
              "', `creation_date`='" .
              $_POST[creation][array_search($edit, $_POST['id'])] .
              "', `edit_date`='" .
